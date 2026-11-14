@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSE Strategy Vault v2.2.1 — 3-Engine Command Center</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --bg-subtle: #0f172a;
+      --surface: #131c2e;
+      --surface-hover: #19253d;
+      --surface-elev: #1a2740;
+      --border: #23324d;
+      --border-strong: #31466b;
+      --text: #e2e8f0;
+      --text-strong: #f8fafc;
+      --muted: #94a3b8;
+      --muted-soft: #64748b;
+      --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.13);
+      --green-border: rgba(16, 185, 129, 0.35);
+      --red: #f43f5e;
+      --red-soft: rgba(244, 63, 94, 0.13);
+      --red-border: rgba(244, 63, 94, 0.35);
+      --blue: #3b82f6;
+      --blue-soft: rgba(59, 130, 246, 0.14);
+      --blue-border: rgba(59, 130, 246, 0.38);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --amber-border: rgba(245, 158, 11, 0.38);
+      --purple: #a78bfa;
+      --purple-soft: rgba(167, 139, 250, 0.14);
+      --purple-border: rgba(167, 139, 250, 0.38);
+      --teal: #14b8a6;
+      --teal-soft: rgba(20, 184, 166, 0.14);
+      --teal-border: rgba(20, 184, 166, 0.38);
+      --shadow: 0 8px 28px rgba(2, 6, 23, 0.35);
+      --chart-grid: rgba(148, 163, 184, 0.11);
+      --chart-axis: #94a3b8;
+      --chart-bg: #0d1526;
+    }
+
+    html[data-theme="light"] {
+      --bg: #f4f6fb;
+      --bg-subtle: #eef2f7;
+      --surface: #ffffff;
+      --surface-hover: #f8fafc;
+      --surface-elev: #ffffff;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #1e293b;
+      --text-strong: #0f172a;
+      --muted: #64748b;
+      --muted-soft: #94a3b8;
+      --green: #059669;
+      --green-soft: rgba(5, 150, 105, 0.10);
+      --green-border: rgba(5, 150, 105, 0.30);
+      --red: #e11d48;
+      --red-soft: rgba(225, 29, 72, 0.09);
+      --red-border: rgba(225, 29, 72, 0.28);
+      --blue: #2563eb;
+      --blue-soft: rgba(37, 99, 235, 0.10);
+      --blue-border: rgba(37, 99, 235, 0.28);
+      --amber: #d97706;
+      --amber-soft: rgba(217, 119, 6, 0.10);
+      --amber-border: rgba(217, 119, 6, 0.30);
+      --purple: #7c3aed;
+      --purple-soft: rgba(124, 58, 237, 0.10);
+      --purple-border: rgba(124, 58, 237, 0.28);
+      --teal: #0d9488;
+      --teal-soft: rgba(13, 148, 136, 0.10);
+      --teal-border: rgba(13, 148, 136, 0.28);
+      --shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+      --chart-grid: rgba(15, 23, 42, 0.07);
+      --chart-axis: #64748b;
+      --chart-bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.48; min-height: 100vh;
+      padding-bottom: 52px; -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sticky Top Bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: 1400px; margin: 0 auto; padding: 11px 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .brand-title {
+      font-size: 16px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.25px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ver-tag {
+      font-size: 11px; font-weight: 700; color: var(--blue); background: var(--blue-soft);
+      border: 1px solid var(--blue-border); padding: 1px 8px; border-radius: 999px;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
+      padding: 3px 10px; border-radius: 999px; background: var(--bg-subtle); border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+    .status-pill.live { color: var(--green); border-color: var(--green-border); background: var(--green-soft); }
+    .status-pill.live .status-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-pill.warn { color: var(--amber); border-color: var(--amber-border); background: var(--amber-soft); }
+    .status-pill.warn .status-dot { background: var(--amber); }
+    .status-pill.holiday { color: var(--blue); border-color: var(--blue-border); background: var(--blue-soft); }
+    .status-pill.holiday .status-dot { background: var(--blue); }
+
+    .nav-tabs {
+      display: inline-flex; background: var(--bg-subtle); border: 1px solid var(--border);
+      padding: 3px; border-radius: 10px; gap: 3px;
+    }
+    .tab-btn {
+      background: transparent; color: var(--muted); border: none; padding: 6px 14px;
+      border-radius: 7px; font-size: 12.8px; font-weight: 600; cursor: pointer; transition: all 0.14s ease;
+    }
+    .tab-btn:hover { color: var(--text-strong); }
+    .tab-btn.active { background: var(--blue); color: #ffffff; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; position: relative; flex-wrap: wrap; }
+    .date-stepper {
+      display: inline-flex; align-items: center; background: var(--bg-subtle);
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .date-stepper button {
+      background: transparent; color: var(--muted); border: none; padding: 6px 9px;
+      cursor: pointer; font-size: 11px;
+    }
+    .date-stepper button:hover { color: var(--text-strong); background: var(--surface-hover); }
+    .date-stepper select {
+      background: transparent; color: var(--text-strong); border: none; padding: 6px 6px;
+      font-size: 12.5px; font-weight: 600; outline: none; cursor: pointer;
+    }
+    .icon-btn {
+      display: inline-flex; align-items: center; gap: 5px; background: var(--bg-subtle);
+      color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+      padding: 6px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.14s ease;
+    }
+    .icon-btn:hover { border-color: var(--border-strong); color: var(--text-strong); background: var(--surface-hover); }
+
+    .settings-popover {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 325px;
+      background: var(--surface-elev); border: 1px solid var(--border-strong); border-radius: 12px;
+      padding: 15px 16px; box-shadow: var(--shadow); z-index: 300;
+    }
+    .settings-popover.open { display: block; }
+    .settings-popover h4 { font-size: 13.5px; font-weight: 700; color: var(--text-strong); margin-bottom: 4px; }
+    .settings-popover p { font-size: 11.5px; color: var(--muted); margin-bottom: 12px; }
+    .field-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .field-row label { font-size: 12px; font-weight: 600; color: var(--text); }
+    .field-row input {
+      width: 118px; background: var(--bg-subtle); color: var(--text-strong); border: 1px solid var(--border);
+      border-radius: 7px; padding: 5px 8px; font-size: 12.5px; font-weight: 600; text-align: right;
+    }
+
+    /* Main Page */
+    .page { max-width: 1400px; margin: 0 auto; padding: 18px 22px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Alerts */
+    .banner {
+      border-radius: 10px; padding: 11px 15px; margin-bottom: 14px; font-size: 12.8px; display: none;
+    }
+    .banner.red { background: var(--red-soft); border: 1px solid var(--red-border); color: var(--text-strong); }
+    .banner.amber { background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--text-strong); }
+    .banner.blue { background: var(--blue-soft); border: 1px solid var(--blue-border); color: var(--text-strong); }
+
+    /* Session Timeline Strip */
+    .timeline-strip {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 15px; margin-bottom: 16px;
+    }
+    .tl-steps { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .tl-chip {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600;
+      padding: 4px 9px; border-radius: 999px; background: var(--bg-subtle); border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .tl-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted-soft); }
+    .tl-chip.evaluated { color: var(--green); border-color: var(--green-border); background: var(--green-soft); }
+    .tl-chip.evaluated .dot { background: var(--green); }
+    .tl-chip.active_now { color: var(--amber); border-color: var(--amber-border); background: var(--amber-soft); }
+    .tl-chip.active_now .dot { background: var(--amber); }
+    .tl-chip.missed { color: var(--red); border-color: var(--red-border); background: var(--red-soft); }
+    .tl-chip.missed .dot { background: var(--red); }
+    .tl-meta { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+    /* Hero KPI Grid */
+    .hero-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 13px; margin-bottom: 16px;
+    }
+    .hero-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+      padding: 15px 17px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .hero-val { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin: 7px 0 5px; color: var(--text-strong); }
+    .hero-sub { font-size: 11.8px; color: var(--muted); line-height: 1.42; }
+
+    .pos { color: var(--green) !important; }
+    .neg { color: var(--red) !important; }
+    .warn { color: var(--amber) !important; }
+    .info { color: var(--blue) !important; }
+    .muted { color: var(--muted); }
+
+    /* Pills */
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; white-space: nowrap; border: 1px solid transparent;
+    }
+    .pill.green { background: var(--green-soft); color: var(--green); border-color: var(--green-border); }
+    .pill.red { background: var(--red-soft); color: var(--red); border-color: var(--red-border); }
+    .pill.blue { background: var(--blue-soft); color: var(--blue); border-color: var(--blue-border); }
+    .pill.amber { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-border); }
+    .pill.purple { background: var(--purple-soft); color: var(--purple); border-color: var(--purple-border); }
+    .pill.teal { background: var(--teal-soft); color: var(--teal); border-color: var(--teal-border); }
+    .pill.neutral { background: var(--bg-subtle); color: var(--muted); border-color: var(--border); }
+
+    /* Multi-Day Carry Holdings Banner */
+    .carry-banner {
+      background: linear-gradient(135deg, var(--teal-soft), transparent 88%);
+      border: 1px solid var(--teal-border); border-radius: 14px; padding: 15px 18px; margin-bottom: 16px;
+    }
+    .carry-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 11px; }
+    .carry-head h3 { font-size: 14px; font-weight: 700; color: var(--text-strong); display: flex; align-items: center; gap: 8px; }
+    .carry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 10px; }
+    .carry-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 13px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      cursor: pointer; transition: border-color 0.14s ease, transform 0.12s ease;
+    }
+    .carry-card:hover { border-color: var(--teal); transform: translateY(-1px); }
+
+    /* Cards & Tables */
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 17px 19px; margin-bottom: 16px; box-shadow: var(--shadow);
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 13px; }
+    .card-head h2 { font-size: 15px; font-weight: 700; color: var(--text-strong); }
+    .card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      background: var(--bg-subtle); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .chip:hover { color: var(--text-strong); }
+    .chip.active { background: var(--blue-soft); color: var(--blue); border-color: var(--blue-border); }
+
+    .search-input {
+      background: var(--bg-subtle); color: var(--text-strong); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 11px; font-size: 12.5px; outline: none; min-width: 185px;
+    }
+    .search-input:focus { border-color: var(--blue); }
+
+    .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.8px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th {
+      background: var(--bg-subtle); color: var(--muted); font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; user-select: none;
+    }
+    th.sortable { cursor: pointer; }
+    th.sortable:hover { color: var(--text-strong); }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.clickable { cursor: pointer; }
+
+    .two-col { display: grid; grid-template-columns: 1.18fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    @media (max-width: 960px) { .two-col { grid-template-columns: 1fr; } }
+
+    .chart-box {
+      width: 100%; height: 255px; background: var(--chart-bg); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; position: relative;
+    }
+
+    /* Z-score mini bar */
+    .z-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 125px; }
+    .z-bar-track { width: 64px; height: 6px; background: var(--bg-subtle); border-radius: 999px; overflow: hidden; position: relative; }
+    .z-bar-fill { height: 100%; border-radius: 999px; }
+
+    /* Macro Gold Strip */
+    .macro-strip {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; margin-bottom: 12px; font-size: 12.5px;
+    }
+    .macro-metrics { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+
+    /* Benchmark Spec List */
+    .spec-list { list-style: none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .spec-list li { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.2px; border-bottom: 1px dashed var(--border); }
+    .spec-list li:last-child { border-bottom: none; }
+
+    /* Audit Pre */
+    .audit-box {
+      background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+      color: var(--text); white-space: pre-wrap; max-height: 360px; overflow-y: auto;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 18px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      width: 100%; max-width: 980px; background: var(--surface); border: 1px solid var(--border-strong);
+      border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow);
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 11px; }
+    .meta-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 11px; }
+    .meta-chip {
+      background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 8px;
+      padding: 5px 10px; font-size: 12px;
+    }
+    .meta-chip span { color: var(--muted); margin-right: 4px; }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; background: var(--surface-elev);
+      border: 1px solid var(--green); color: var(--text-strong); padding: 9px 14px;
+      border-radius: 10px; font-size: 12.5px; font-weight: 600; box-shadow: var(--shadow);
+      display: none; z-index: 2000;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-title">
+          <span>NSE Strategy Vault</span>
+          <span class="ver-tag" id="verBadge">v2.2.1</span>
+        </div>
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusText">Loading...</span>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" aria-label="Views">
+        <button class="tab-btn active" data-tab="today" onclick="switchTab('today', this)">Today</button>
+        <button class="tab-btn" data-tab="performance" onclick="switchTab('performance', this)">Performance</button>
+        <button class="tab-btn" data-tab="research" onclick="switchTab('research', this)">Market &amp; Research</button>
+      </nav>
+
+      <div class="header-actions">
+        <div class="date-stepper" title="Switch Session Date">
+          <button onclick="stepDate(1)" title="Older Session">◀</button>
+          <select id="dateSelect" onchange="onDateChange()"></select>
+          <button onclick="stepDate(-1)" title="Newer Session">▶</button>
+        </div>
+        <button class="icon-btn" onclick="syncNow()">↻ Sync</button>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+        <button class="icon-btn" onclick="toggleSettings(event)">⚙️ Capital</button>
+
+        <div class="settings-popover" id="settingsPopover" onclick="event.stopPropagation()">
+          <h4>3-Engine What-If Capital Simulator</h4>
+          <p>Scale paper trade quantities, 2026 statutory charges, and Net P&amp;L across all 3 engines.</p>
+          <div class="field-row">
+            <label for="capOrb">Engine 1 ORB Short (₹)</label>
+            <input type="number" id="capOrb" value="1000000" step="100000" min="50000" onchange="onCapitalChange()" />
+          </div>
+          <div class="field-row">
+            <label for="capRw">Engine 2 Regime Wave (₹)</label>
+            <input type="number" id="capRw" value="1000000" step="100000" min="50000" onchange="onCapitalChange()" />
+          </div>
+          <div class="field-row">
+            <label for="capMd">Engine 3 Disp + Gold (₹)</label>
+            <input type="number" id="capMd" value="1000000" step="100000" min="50000" onchange="onCapitalChange()" />
+          </div>
+          <div style="display:flex;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid var(--border);">
+            <button class="icon-btn" style="flex:1;justify-content:center;" onclick="resetCapitals()">Reset ₹10L×3</button>
+            <button class="icon-btn" style="flex:1;justify-content:center;" onclick="exportLedgerCSV()">⬇ Ledger CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div id="missedBanner" class="banner red"></div>
+    <div id="staleBanner" class="banner amber"></div>
+    <div id="holidayBanner" class="banner blue"></div>
+
+    <!-- ================================================================== -->
+    <!-- TAB 1: TODAY                                                       -->
+    <!-- ================================================================== -->
+    <section id="tab-today" class="tab-pane active">
+      <div class="timeline-strip">
+        <div class="tl-steps" id="timelineSteps"></div>
+        <div class="tl-meta" id="syncedMeta">--</div>
+      </div>
+
+      <div class="hero-grid" id="todayHeroGrid"></div>
+
+      <div id="carryBannerWrap"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2 id="positionsHeading">Session Positions (Engines 1, 2 &amp; 3)</h2>
+            <div class="card-sub">Click any position to inspect its strictly closed 5-minute candles, intraday VWAP, and Entry / SL / TP levels.</div>
+          </div>
+          <div id="positionsCountLabel" class="muted" style="font-size:12.5px;font-weight:600;"></div>
+        </div>
+
+        <div class="toolbar">
+          <div class="chip-group" id="posFilterChips">
+            <button class="chip active" data-f="all" onclick="setPosFilter('all', this)">All Positions</button>
+            <button class="chip" data-f="open" onclick="setPosFilter('open', this)">Open / Carrying</button>
+            <button class="chip" data-f="e1" onclick="setPosFilter('e1', this)">Engine 1: ORB Short</button>
+            <button class="chip" data-f="e2" onclick="setPosFilter('e2', this)">Engine 2: Regime Wave</button>
+            <button class="chip" data-f="e3a" onclick="setPosFilter('e3a', this)">Engine 3: 24h Dispersion</button>
+            <button class="chip" data-f="e3b" onclick="setPosFilter('e3b', this)">Engine 3: Macro Gold</button>
+          </div>
+          <input type="text" class="search-input" id="posSearch" placeholder="Search symbol or rule..." oninput="renderPositionsTable()" />
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortPositions('symbol')">Symbol ⇅</th>
+                <th class="sortable" onclick="sortPositions('engine')">Engine &amp; Product ⇅</th>
+                <th>Side &amp; Qty</th>
+                <th>Entry → Exit / MTM</th>
+                <th>SL / TP</th>
+                <th>Rule / Exit Reason</th>
+                <th class="sortable" onclick="sortPositions('net_bps')">Net bps ⇅</th>
+                <th class="sortable" style="text-align:right;" onclick="sortPositions('net_pnl_inr')">Net P&amp;L ⇅</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="positionsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Intraday Portfolio P&amp;L Trajectory</h2>
+              <div class="card-sub">Strict closed-bar progression across all 3 engines (exit-frozen on settled trades)</div>
+            </div>
+            <div id="curveHoverReadout" class="muted" style="font-size:12px;font-weight:700;"></div>
+          </div>
+          <div id="intradayCurveBox" class="chart-box"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>5m Candle &amp; VWAP Inspector <span id="inlineChartSym" class="pill blue" style="margin-left:6px;">--</span></h2>
+              <div class="card-sub">Previewing selected ticker (click Expand for full-screen interactive modal)</div>
+            </div>
+            <button class="icon-btn" onclick="if(selectedSymbol) openChartModal(selectedSymbol)">⤢ Expand</button>
+          </div>
+          <div id="inlineCandleBox" class="chart-box"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Daily Execution Window Schedule &amp; Causality Guards</h2>
+            <div class="card-sub">All 10 scheduled IST checkpoints across Engine 1 (`10:00`), Engine 2 (`09:20..12:00`), Engine 3 (`09:20` Gold &amp; `12:30` Dispersion), and `15:15` MIS Square-Off</div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Window ID</th><th>Engine &amp; Description</th><th>Scheduled IST</th><th>Deadline IST</th><th>Guard Status</th><th>Detail</th></tr>
+            </thead>
+            <tbody id="windowsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- TAB 2: PERFORMANCE                                                 -->
+    <!-- ================================================================== -->
+    <section id="tab-performance" class="tab-pane">
+      <div class="hero-grid" id="perfHeroGrid"></div>
+
+      <div class="two-col">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Cumulative Realized Net P&amp;L Curve</h2>
+              <div class="card-sub">Net compounding across all 3 engines after 2026 MIS / FUTSTK / CNC statutory taxes &amp; slippage</div>
+            </div>
+            <div style="display:flex;gap:9px;font-size:11.5px;font-weight:700;flex-wrap:wrap;">
+              <span style="color:var(--blue);">● Combined</span>
+              <span style="color:var(--amber);">● E1 ORB</span>
+              <span style="color:var(--purple);">● E2 Wave</span>
+              <span style="color:var(--teal);">● E3 Disp+Gold</span>
+            </div>
+          </div>
+          <div id="perfCumBox" class="chart-box"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Day-by-Day Realized Net P&amp;L</h2>
+              <div class="card-sub">Realized daily net profit/loss per trading session</div>
+            </div>
+          </div>
+          <div id="perfBarsBox" class="chart-box"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Session-by-Session Paper Compounding Ledger</h2>
+            <div class="card-sub">Multi-day Engine 3 gains book cleanly on settlement date (open carry MTM shown separately without double-counting). Click any row to load that session.</div>
+          </div>
+          <button class="icon-btn" onclick="exportLedgerCSV()">⬇ Download CSV</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Wave Regime</th>
+                <th>E1 ORB Short</th>
+                <th>E2 Regime Wave</th>
+                <th>E3 Dispersion + Gold</th>
+                <th>E3 Open Carry MTM</th>
+                <th>Missed Guards</th>
+                <th style="text-align:right;">Realized Day Net</th>
+                <th style="text-align:right;">Cumulative Net</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- TAB 3: MARKET & RESEARCH                                           -->
+    <!-- ================================================================== -->
+    <section id="tab-research" class="tab-pane">
+
+      <!-- Engine 3 Scanner Card -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Engine 3 — Midday Dispersion (`12:30 IST`) &amp; Macro Gold (`09:20 IST`) Scanner</h2>
+            <div class="card-sub">Top-100 liquid F&amp;O cross-sectional volatility-normalized dispersion (`|z| >= 0.65`, `2–3` dollar-neutral pairs) + `GOLDBEES` macro trend/COMEX lead</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="mdFilterSelect" class="search-input" style="min-width:160px;" onchange="renderMdScanner()">
+              <option value="all">All Scanned Tickers</option>
+              <option value="long">Long Tail (z &gt;= +0.65)</option>
+              <option value="short">Short Tail (z &lt;= -0.65)</option>
+            </select>
+            <input type="text" id="mdSearchInput" class="search-input" placeholder="Search F&O stock..." oninput="renderMdScanner()" />
+          </div>
+        </div>
+
+        <div class="macro-strip" id="goldMacroStrip"></div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Blended Z-Score (`12:30`)</th>
+                <th>Morning Ret %</th>
+                <th>24h Ret %</th>
+                <th>ATR14 % (`T-1`)</th>
+                <th>ADT20 (₹ Cr)</th>
+                <th>12:30 Price</th>
+                <th>Basket Signal</th>
+              </tr>
+            </thead>
+            <tbody id="mdScanBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Engine 1 Scanner Card -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Engine 1 — Top-30 Institutional Delivery (`10:00 IST`) ORB Breakdown Watchlist</h2>
+            <div class="card-sub">Ranked by 20-day institutional delivery value (`DLV20 >= ₹35 Cr`, `ADT20 >= ₹100 Cr`, `Gap <= -0.40%`, `ORB Pos <= 0.15`, `RVOL >= 1.20`)</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="orbFilterSelect" class="search-input" style="min-width:155px;" onchange="renderOrbScanner()">
+              <option value="all">All Top-30 Delivery</option>
+              <option value="pass">Triggered (`PASS`)</option>
+              <option value="wait">Filtered (`WAIT`)</option>
+            </select>
+            <input type="text" id="orbSearchInput" class="search-input" placeholder="Search Top-30 stock..." oninput="renderOrbScanner()" />
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Dlv Rank</th><th>Symbol</th><th>DLV20 (₹ Cr)</th><th>ADT20 (₹ Cr)</th>
+                <th>Open Gap %</th><th>ORB Close Pos</th><th>ORB RVOL</th><th>10:00 Signal</th>
+              </tr>
+            </thead>
+            <tbody id="orbScanBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3-Engine Walk-Forward Benchmarks -->
+      <div class="three-col" id="benchmarkCardsGrid"></div>
+
+      <!-- Audit & Cloud Replay Log Viewer -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Causal Session Audit &amp; Cloud Verification Logs</h2>
+            <div class="card-sub">Inspect the live session causal audit or multi-day cloud replay verification reports</div>
+          </div>
+          <select id="auditSelect" class="search-input" style="min-width:240px;" onchange="renderAuditBox()"></select>
+        </div>
+        <pre id="auditPre" class="audit-box">Loading audit report...</pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- Interactive 5m Candlestick + VWAP Modal -->
+  <div class="modal-backdrop" id="chartModal" onclick="if(event.target===this) closeChartModal()">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle" style="font-size:17.5px;font-weight:800;color:var(--text-strong);">Ticker</h2>
+          <div id="modalSub" class="card-sub">5-minute closed-bar session candles &amp; cumulative intraday VWAP</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div id="modalHoverReadout" style="font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);background:var(--bg-subtle);padding:5px 10px;border-radius:8px;border:1px solid var(--border);">Hover over any candle</div>
+          <button class="icon-btn" onclick="closeChartModal()">✕ Close</button>
+        </div>
+      </div>
+      <div class="meta-chips" id="modalMetaChips"></div>
+      <div id="modalSvgBox" class="chart-box" style="height:400px;"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toastBox"></div>
+
+  <script>
+    let currentState = null;
+    let selectedSymbol = null;
+    let posFilter = "all";
+    let posSortKey = "net_pnl_inr";
+    let posSortAsc = false;
+    let chartCache = {};
+
+    // Theme persistence
+    (function initTheme() {
+      const saved = localStorage.getItem("nse_vault_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      const btn = document.getElementById("themeBtn");
+      if (btn) btn.textContent = saved === "dark" ? "☀️ Light" : "🌙 Dark";
+    })();
+
+    function toggleTheme() {
+      const cur = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("nse_vault_theme", next);
+      document.getElementById("themeBtn").textContent = next === "dark" ? "☀️ Light" : "🌙 Dark";
+      if (currentState) renderState(currentState);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toastBox");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 2600);
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + tabId).classList.add("active");
+      if (currentState && tabId === "performance") renderPerformanceTab(currentState);
+    }
+
+    function toggleSettings(ev) {
+      ev.stopPropagation();
+      document.getElementById("settingsPopover").classList.toggle("open");
+    }
+    document.addEventListener("click", () => {
+      const pop = document.getElementById("settingsPopover");
+      if (pop) pop.classList.remove("open");
+    });
+
+    function getCapMultipliers() {
+      const base = (currentState && currentState.engine_summary && currentState.engine_summary.base_capital_inr) || {};
+      const bOrb = Number(base.orb_short_delivery || 1000000);
+      const bRw = Number(base.regime_wave_intraday || 1000000);
+      const bMd = Number(base.midday_dispersion_gold || 1000000);
+      const uOrb = Math.max(10000, Number(document.getElementById("capOrb").value || bOrb));
+      const uRw = Math.max(10000, Number(document.getElementById("capRw").value || bRw));
+      const uMd = Math.max(10000, Number(document.getElementById("capMd").value || bMd));
+      return {
+        orb_short_delivery: uOrb / bOrb,
+        regime_wave_intraday: uRw / bRw,
+        midday_dispersion_gold: uMd / bMd,
+      };
+    }
+
+    function scaleForEngine(eng) {
+      const m = getCapMultipliers();
+      return m[eng] !== undefined ? m[eng] : 1.0;
+    }
+
+    function onCapitalChange() {
+      if (currentState) renderState(currentState);
+      showToast("Updated What-If capital scaling across all 3 engines");
+    }
+
+    function resetCapitals() {
+      document.getElementById("capOrb").value = 1000000;
+      document.getElementById("capRw").value = 1000000;
+      document.getElementById("capMd").value = 1000000;
+      onCapitalChange();
+    }
+
+    function fmtInr(v) {
+      const n = Number(v || 0);
+      return (n >= 0 ? "+" : "-") + "₹" + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtInrPlain(v) {
+      const n = Number(v || 0);
+      return "₹" + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function engineMeta(p) {
+      const eng = p.engine || "";
+      if (eng === "orb_short_delivery") return { short: "E1 ORB Short", badge: "amber", prod: "MIS 3x" };
+      if (eng === "regime_wave_intraday") return { short: "E2 Regime Wave", badge: "purple", prod: "MIS 5x" };
+      if (eng === "midday_dispersion_gold") {
+        if (p.leg === "B" || p.product === "CNC_ETF") return { short: "E3 Macro Gold", badge: "teal", prod: "CNC ETF 1x" };
+        return { short: "E3 24h Dispersion", badge: "blue", prod: "FUTSTK 1.3x" };
+      }
+      return { short: eng || "Engine", badge: "neutral", prod: p.product || "MIS" };
+    }
+
+    function setPosFilter(f, btn) {
+      posFilter = f;
+      document.querySelectorAll("#posFilterChips .chip").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      renderPositionsTable();
+    }
+
+    function sortPositions(key) {
+      if (posSortKey === key) posSortAsc = !posSortAsc;
+      else { posSortKey = key; posSortAsc = key === "symbol"; }
+      renderPositionsTable();
+    }
+
+    function renderTimeline(st) {
+      const sched = st.schedule_status || [];
+      const groups = [
+        { label: "09:20 Wave 1 + Gold", ids: ["WAVE_555", "GOLD_0920"] },
+        { label: "09:30 Wave 2", ids: ["WAVE_565"] },
+        { label: "10:00 ORB + Wave 3", ids: ["ORB_1000", "WAVE_595"] },
+        { label: "10:30 Wave 4", ids: ["WAVE_625"] },
+        { label: "11:15 Wave 5", ids: ["WAVE_670"] },
+        { label: "12:00 Wave 6", ids: ["WAVE_715"] },
+        { label: "12:30 E3 Dispersion", ids: ["DISP_1230"] },
+        { label: "15:15 MIS Square-Off", ids: ["EOD_1515"] },
+      ];
+      const byId = {};
+      sched.forEach(w => { byId[w.window_id] = w.status; });
+
+      document.getElementById("timelineSteps").innerHTML = groups.map(g => {
+        const statuses = g.ids.map(id => byId[id] || "PENDING");
+        let cls = "";
+        if (statuses.includes("ACTIVE_NOW")) cls = "active_now";
+        else if (statuses.every(s => s === "EVALUATED" || s === "SKIPPED_FLAT")) cls = "evaluated";
+        else if (statuses.includes("MISSED")) cls = "missed";
+        return `<span class="tl-chip ${cls}"><span class="dot"></span>${g.label}</span>`;
+      }).join("");
+
+      const ageMins = st.updated_at_epoch ? Math.max(0, Math.round((Date.now() / 1000 - Number(st.updated_at_epoch)) / 60)) : null;
+      const ageStr = ageMins !== null ? ` (${ageMins}m ago)` : "";
+      document.getElementById("syncedMeta").textContent =
+        `Session ${st.session_date} · Last Bar ${st.last_bar_time || "--"} · Synced ${st.updated_at || "--"}${ageStr}`;
+    }
+
+    function renderHeroCards(st) {
+      const positions = st.unified_positions || [];
+      let e1Net = 0, e2Net = 0, e3Net = 0, totCost = 0;
+      let e1Cnt = 0, e2Cnt = 0, e3OpenA = 0, e3OpenB = 0, e3Settled = 0, openAll = 0;
+
+      positions.forEach(p => {
+        const mult = scaleForEngine(p.engine);
+        const net = Number(p.net_pnl_inr || 0) * mult;
+        const cost = Number(p.total_cost_inr || 0) * mult;
+        totCost += cost;
+        if (p.status === "OPEN") openAll++;
+        if (p.engine === "orb_short_delivery") { e1Net += net; e1Cnt++; }
+        else if (p.engine === "regime_wave_intraday") { e2Net += net; e2Cnt++; }
+        else if (p.engine === "midday_dispersion_gold") {
+          e3Net += net;
+          if (p.status === "CLOSED") e3Settled++;
+          else if (p.leg === "B") e3OpenB++;
+          else e3OpenA++;
+        }
+      });
+
+      const combNet = e1Net + e2Net + e3Net;
+      const gSnap = st.md_gold_snapshot || {};
+      const mdMeta = st.md_scan_meta || {};
+      const uCounts = st.universe_counts || {};
+      const goldBadge = gSnap.should_enter
+        ? `<span class="pill green">${gSnap.reason}</span>`
+        : `<span class="pill neutral">${gSnap.reason || "WAIT"}</span>`;
+
+      document.getElementById("todayHeroGrid").innerHTML = `
+        <div class="hero-card">
+          <div class="hero-top"><span>Combined Net P&amp;L</span><span class="pill ${combNet >= 0 ? 'green' : 'red'}">${openAll} Open / ${positions.length} Total</span></div>
+          <div class="hero-val ${combNet >= 0 ? 'pos' : 'neg'}">${fmtInr(combNet)}</div>
+          <div class="hero-sub">2026 Statutory Taxes + Slippage: <strong>${fmtInrPlain(totCost)}</strong></div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Engine 1 · ORB Short</span><span class="pill amber">3x MIS</span></div>
+          <div class="hero-val ${e1Net >= 0 ? 'pos' : 'neg'}">${fmtInr(e1Net)}</div>
+          <div class="hero-sub">${e1Cnt} trade(s) · 10:00 Breakdown · Top-${uCounts.orb_top30 || 30} Delivery</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Engine 2 · Regime Wave</span><span class="pill purple">5x MIS</span></div>
+          <div class="hero-val ${e2Net >= 0 ? 'pos' : 'neg'}">${fmtInr(e2Net)}</div>
+          <div class="hero-sub">${e2Cnt} trade(s) · Regime <strong>${st.regime || "UNKNOWN"}</strong> (${uCounts.regime_panel || 0} panel)</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Engine 3 · Disp + Gold</span><span class="pill teal">M4_ITER10</span></div>
+          <div class="hero-val ${e3Net >= 0 ? 'pos' : 'neg'}">${fmtInr(e3Net)}</div>
+          <div class="hero-sub">24h FUTSTK: <strong>${e3OpenA} open</strong>, ${e3Settled} settled · Gold CNC: <strong>${e3OpenB ? 'HOLDING' : 'FLAT'}</strong></div>
+        </div>
+        <div class="hero-card" style="cursor:pointer;" onclick="openChartModal('GOLDBEES')">
+          <div class="hero-top"><span>Macro &amp; VIX Filter</span>${goldBadge}</div>
+          <div class="hero-val info" style="font-size:19px;">VIX ${mdMeta.vix_prev ? Number(mdMeta.vix_prev).toFixed(2) : "≤ 28.0"}</div>
+          <div class="hero-sub">GOLDBEES T-1: <strong>${gSnap.gc_prev ? '₹' + gSnap.gc_prev : '--'}</strong> · Lead <strong>${gSnap.gold_lead !== undefined ? (Number(gSnap.gold_lead) * 100).toFixed(2) + '%' : '--'}</strong></div>
+        </div>
+      `;
+    }
+
+    function renderCarryBanner(st) {
+      const wrap = document.getElementById("carryBannerWrap");
+      const openCarry = (st.unified_positions || []).filter(p => p.engine === "midday_dispersion_gold" && p.status === "OPEN");
+      if (!openCarry.length) {
+        wrap.innerHTML = "";
+        return;
+      }
+      const cards = openCarry.map(p => {
+        const mult = scaleForEngine(p.engine);
+        const qty = Math.max(1, Math.round(Number(p.qty || 1) * mult));
+        const net = Number(p.net_pnl_inr || 0) * mult;
+        const side = Number(p.direction) > 0 ? '<span class="pill green">LONG</span>' : '<span class="pill red">SHORT</span>';
+        const horizon = p.leg === "B"
+          ? `GOLDBEES CNC · Day ${p.bars_held || 1}/8`
+          : `24h FUTSTK · Rotates 12:30 IST`;
+        return `
+          <div class="carry-card" onclick="openChartModal('${p.symbol}')">
+            <div>
+              <div style="display:flex;align-items:center;gap:7px;font-weight:800;color:var(--text-strong);">
+                <span>${p.symbol}</span> ${side}
+              </div>
+              <div class="muted" style="font-size:11.5px;margin-top:3px;">${horizon} · Qty ${qty.toLocaleString("en-IN")} @ ₹${p.entry_price}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="${net >= 0 ? 'pos' : 'neg'}" style="font-weight:800;font-size:14px;">${fmtInr(net)}</div>
+              <div class="muted" style="font-size:11px;">MTM ₹${p.current_price ?? p.entry_price}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      wrap.innerHTML = `
+        <div class="carry-banner">
+          <div class="carry-head">
+            <h3><span>🌙 Active Multi-Session Carry Book (Engine 3 — Persisted in <code>engine3_open_book.json</code>)</span></h3>
+            <span class="pill teal">${openCarry.length} Active Carry Leg(s)</span>
+          </div>
+          <div class="carry-grid">${cards}</div>
+        </div>
+      `;
+    }
+
+    function renderPositionsTable() {
+      if (!currentState) return;
+      const q = (document.getElementById("posSearch").value || "").trim().toUpperCase();
+      let rows = (currentState.unified_positions || []).map(p => {
+        const mult = scaleForEngine(p.engine);
+        return {
+          ...p,
+          scaled_qty: Math.max(1, Math.round(Number(p.qty || 0) * mult)),
+          scaled_net: Number(p.net_pnl_inr || 0) * mult,
+        };
+      });
+
+      rows = rows.filter(p => {
+        if (posFilter === "open" && p.status !== "OPEN") return false;
+        if (posFilter === "e1" && p.engine !== "orb_short_delivery") return false;
+        if (posFilter === "e2" && p.engine !== "regime_wave_intraday") return false;
+        if (posFilter === "e3a" && !(p.engine === "midday_dispersion_gold" && p.leg !== "B")) return false;
+        if (posFilter === "e3b" && !(p.engine === "midday_dispersion_gold" && p.leg === "B")) return false;
+        if (q) {
+          const hay = `${p.symbol} ${p.engine} ${p.rule || ""} ${p.exit_reason || ""}`.toUpperCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      rows.sort((a, b) => {
+        let va = posSortKey === "net_pnl_inr" ? a.scaled_net : a[posSortKey];
+        let vb = posSortKey === "net_pnl_inr" ? b.scaled_net : b[posSortKey];
+        if (typeof va === "string") return posSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return posSortAsc ? Number(va || 0) - Number(vb || 0) : Number(vb || 0) - Number(va || 0);
+      });
+
+      document.getElementById("positionsCountLabel").textContent =
+        `Showing ${rows.length} of ${(currentState.unified_positions || []).length} position(s)`;
+
+      const tbody = document.getElementById("positionsBody");
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="muted" style="text-align:center;padding:22px;">No positions match this filter for session <code>${currentState.session_date}</code>.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(p => {
+        const meta = engineMeta(p);
+        const side = Number(p.direction) > 0
+          ? `<span class="pill green">LONG · ${p.scaled_qty.toLocaleString("en-IN")}</span>`
+          : `<span class="pill red">SHORT · ${p.scaled_qty.toLocaleString("en-IN")}</span>`;
+        const entryPrefix = (p.date && p.date !== currentState.session_date) ? `${p.date} ${p.entry_time || ""}` : (p.wave_time || p.entry_time || "--");
+        const nowPx = p.exit_price ?? (p.current_price ?? "--");
+        const stPill = p.status === "OPEN" ? `<span class="pill blue">OPEN</span>` : `<span class="pill neutral">CLOSED</span>`;
+        return `
+          <tr class="clickable" onclick="openChartModal('${p.symbol}')">
+            <td><strong style="color:var(--text-strong);">${p.symbol}</strong></td>
+            <td><span class="pill ${meta.badge}">${meta.short}</span> <span class="muted" style="font-size:11px;">${meta.prod}</span></td>
+            <td>${side}</td>
+            <td>₹${p.entry_price} <span class="muted">(${entryPrefix})</span> → <strong>₹${nowPx}</strong></td>
+            <td class="muted">SL ₹${p.sl_price ?? "--"} / TP ${p.tp_price ? "₹" + p.tp_price : "--"}</td>
+            <td><code>${p.exit_reason || p.rule || "--"}</code></td>
+            <td class="${Number(p.net_bps || 0) >= 0 ? 'pos' : 'neg'}" style="font-weight:700;">${Number(p.net_bps || 0).toFixed(1)} bps</td>
+            <td class="${p.scaled_net >= 0 ? 'pos' : 'neg'}" style="text-align:right;font-weight:800;">${fmtInr(p.scaled_net)}</td>
+            <td>${stPill}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function drawIntradayCurve(curve) {
+      const box = document.getElementById("intradayCurveBox");
+      const readout = document.getElementById("curveHoverReadout");
+      if (!curve || curve.length < 2) {
+        box.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">No active intraday trajectory recorded for this session</div>`;
+        readout.textContent = "";
+        return;
+      }
+      const m = getCapMultipliers();
+      const ptsData = curve.map(c => {
+        const e1 = Number(c.orb_pnl_inr || 0) * m.orb_short_delivery;
+        const e2 = Number(c.rw_pnl_inr || 0) * m.regime_wave_intraday;
+        const e3 = Number(c.md_pnl_inr || 0) * m.midday_dispersion_gold;
+        const hasSplit = (c.orb_pnl_inr !== undefined || c.rw_pnl_inr !== undefined || c.md_pnl_inr !== undefined);
+        const tot = hasSplit ? (e1 + e2 + e3) : Number(c.net_pnl_inr || 0);
+        return { time: c.time, tot, e1, e2, e3 };
+      });
+
+      const vals = ptsData.map(p => p.tot);
+      const minV = Math.min(0, ...vals);
+      const maxV = Math.max(0, ...vals);
+      const span = Math.max(100, maxV - minV);
+      const W = 740, H = 240, ox = 28, oy = 24, w = W - 52, h = H - 48;
+      const toX = i => ox + (i / (ptsData.length - 1)) * w;
+      const toY = v => oy + h - ((v - minV) / span) * h;
+      const zeroY = toY(0);
+      const poly = ptsData.map((p, i) => `${toX(i).toFixed(1)},${toY(p.tot).toFixed(1)}`).join(" ");
+      const last = ptsData[ptsData.length - 1];
+      const stroke = last.tot >= 0 ? "var(--green)" : "var(--red)";
+      readout.textContent = `${last.time} IST · ${fmtInr(last.tot)}`;
+
+      box.innerHTML = `
+        <svg id="intraSvg" viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;cursor:crosshair;">
+          <line x1="${ox}" y1="${zeroY.toFixed(1)}" x2="${ox + w}" y2="${zeroY.toFixed(1)}" stroke="var(--border-strong)" stroke-dasharray="4 4" />
+          <polyline fill="none" stroke="${stroke}" stroke-width="2.5" points="${poly}" />
+          <text x="${ox}" y="16" fill="var(--chart-axis)" font-size="11">${ptsData[0].time}</text>
+          <text x="${ox + w}" y="16" fill="${stroke}" text-anchor="end" font-size="11.5" font-weight="700">${last.time}: ${fmtInr(last.tot)}</text>
+        </svg>
+      `;
+
+      const svgEl = document.getElementById("intraSvg");
+      svgEl.addEventListener("mousemove", ev => {
+        const rect = svgEl.getBoundingClientRect();
+        const relX = ((ev.clientX - rect.left) / rect.width) * W;
+        const idx = Math.max(0, Math.min(ptsData.length - 1, Math.round(((relX - ox) / w) * (ptsData.length - 1))));
+        const d = ptsData[idx];
+        readout.textContent = `${d.time} · Total ${fmtInr(d.tot)} (E1 ${fmtInr(d.e1)} | E2 ${fmtInr(d.e2)} | E3 ${fmtInr(d.e3)})`;
+      });
+    }
+
+    async function fetchChartData(sym) {
+      if (chartCache[sym]) return chartCache[sym];
+      const res = await fetch(`data/charts/${encodeURIComponent(sym)}.json?ts=${Date.now()}`);
+      if (!res.ok) throw new Error("chart not staged");
+      const data = await res.json();
+      chartCache[sym] = data;
+      return data;
+    }
+
+    function buildCandleSvgMarkup(data, W, H, hoverCallbackName) {
+      const bars = data.bars || [];
+      if (!bars.length) {
+        return `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">No closed 5m candles staged for ${data.symbol}</div>`;
+      }
+      const prices = [];
+      bars.forEach(b => { prices.push(b.h, b.l); if (b.vwap) prices.push(b.vwap); });
+      if (data.entry_price) prices.push(Number(data.entry_price));
+      if (data.sl_price) prices.push(Number(data.sl_price));
+      if (data.tp_price) prices.push(Number(data.tp_price));
+
+      const minP = Math.min(...prices);
+      const maxP = Math.max(...prices);
+      const pad = Math.max(0.25, (maxP - minP) * 0.06);
+      const lo = minP - pad, hi = maxP + pad, span = Math.max(0.5, hi - lo);
+      const ox = 24, oy = 20, w = W - 82, h = H - 42;
+      const bw = Math.max(2, Math.min(9.5, w / bars.length - 1.6));
+      const toX = i => ox + (i / Math.max(1, bars.length - 1)) * w;
+      const toY = p => oy + h - ((p - lo) / span) * h;
+
+      let g = "";
+      for (let k = 0; k <= 4; k++) {
+        const py = oy + (k / 4) * h;
+        const pv = hi - (k / 4) * span;
+        g += `<line x1="${ox}" y1="${py.toFixed(1)}" x2="${ox + w}" y2="${py.toFixed(1)}" stroke="var(--chart-grid)" />`;
+        g += `<text x="${ox + w + 6}" y="${(py + 4).toFixed(1)}" fill="var(--chart-axis)" font-size="10.5">₹${pv.toFixed(1)}</text>`;
+      }
+
+      const vwapPts = bars.filter(b => b.vwap).map((b, i) => `${toX(i).toFixed(1)},${toY(b.vwap).toFixed(1)}`).join(" ");
+      if (vwapPts) {
+        g += `<polyline fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-opacity="0.85" points="${vwapPts}" />`;
+      }
+
+      bars.forEach((b, i) => {
+        const x = toX(i);
+        const col = b.c >= b.o ? "var(--green)" : "var(--red)";
+        const yH = toY(b.h), yL = toY(b.l), yO = toY(b.o), yC = toY(b.c);
+        const top = Math.min(yO, yC), bh = Math.max(1.5, Math.abs(yO - yC));
+        g += `<line x1="${x.toFixed(1)}" y1="${yH.toFixed(1)}" x2="${x.toFixed(1)}" y2="${yL.toFixed(1)}" stroke="${col}" stroke-width="1.1"/>`;
+        g += `<rect x="${(x - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}"/>`;
+      });
+
+      if (data.entry_price) {
+        const y = toY(Number(data.entry_price));
+        g += `<line x1="${ox}" y1="${y.toFixed(1)}" x2="${ox + w}" y2="${y.toFixed(1)}" stroke="var(--blue)" stroke-width="1.4" stroke-dasharray="5 3"/>`;
+      }
+      if (data.sl_price) {
+        const y = toY(Number(data.sl_price));
+        g += `<line x1="${ox}" y1="${y.toFixed(1)}" x2="${ox + w}" y2="${y.toFixed(1)}" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="4 3"/>`;
+      }
+      if (data.tp_price) {
+        const y = toY(Number(data.tp_price));
+        g += `<line x1="${ox}" y1="${y.toFixed(1)}" x2="${ox + w}" y2="${y.toFixed(1)}" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="4 3"/>`;
+      }
+
+      return `<svg data-sym="${data.symbol}" viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;" onmousemove="${hoverCallbackName || ''}(event, '${data.symbol}', ${W}, ${ox}, ${w})">${g}</svg>`;
+    }
+
+    async function loadInlineCandle(sym) {
+      selectedSymbol = sym;
+      document.getElementById("inlineChartSym").textContent = sym;
+      const box = document.getElementById("inlineCandleBox");
+      try {
+        const data = await fetchChartData(sym);
+        box.innerHTML = buildCandleSvgMarkup(data, 680, 245, "");
+      } catch (e) {
+        box.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">No closed 5m bars staged for ${sym}</div>`;
+      }
+    }
+
+    window.onModalCandleHover = function(ev, sym, W, ox, w) {
+      const data = chartCache[sym];
+      if (!data || !data.bars || !data.bars.length) return;
+      const rect = ev.currentTarget.getBoundingClientRect();
+      const relX = ((ev.clientX - rect.left) / rect.width) * W;
+      const idx = Math.max(0, Math.min(data.bars.length - 1, Math.round(((relX - ox) / w) * (data.bars.length - 1))));
+      const b = data.bars[idx];
+      document.getElementById("modalHoverReadout").textContent =
+        `${b.t} IST  O:${b.o}  H:${b.h}  L:${b.l}  C:${b.c}  VWAP:${b.vwap ?? '--'}  Vol:${Number(b.v || 0).toLocaleString("en-IN")}`;
+    };
+
+    async function openChartModal(sym) {
+      selectedSymbol = sym;
+      loadInlineCandle(sym);
+      const modal = document.getElementById("chartModal");
+      modal.classList.add("open");
+      document.getElementById("modalTitle").textContent = `${sym} — 5m Closed-Bar Session Chart`;
+      const svgBox = document.getElementById("modalSvgBox");
+      const chipsBox = document.getElementById("modalMetaChips");
+      svgBox.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">Loading ${sym} candles...</div>`;
+
+      const pos = (currentState && currentState.unified_positions || []).find(p => p.symbol === sym);
+      try {
+        const data = await fetchChartData(sym);
+        document.getElementById("modalSub").textContent =
+          `Session ${data.session_date || currentState.session_date} · Amber line = Intraday VWAP · Blue = Entry · Red = SL · Green = TP`;
+        const chips = [];
+        if (pos) {
+          const meta = engineMeta(pos);
+          chips.push(`<div class="meta-chip"><span>Engine:</span><strong>${meta.short} (${meta.prod})</strong></div>`);
+          chips.push(`<div class="meta-chip"><span>Entry:</span><strong>₹${pos.entry_price} (${pos.entry_time})</strong></div>`);
+          if (pos.sl_price) chips.push(`<div class="meta-chip"><span>SL:</span><strong>₹${pos.sl_price}</strong></div>`);
+          if (pos.tp_price) chips.push(`<div class="meta-chip"><span>TP:</span><strong>₹${pos.tp_price}</strong></div>`);
+          chips.push(`<div class="meta-chip"><span>Net P&amp;L:</span><strong class="${Number(pos.net_pnl_inr) >= 0 ? 'pos' : 'neg'}">${fmtInr(Number(pos.net_pnl_inr) * scaleForEngine(pos.engine))}</strong></div>`);
+        } else if (data.bars && data.bars.length) {
+          const last = data.bars[data.bars.length - 1];
+          chips.push(`<div class="meta-chip"><span>Last Close (${last.t}):</span><strong>₹${last.c}</strong></div>`);
+          if (last.vwap) chips.push(`<div class="meta-chip"><span>Session VWAP:</span><strong>₹${last.vwap}</strong></div>`);
+        }
+        chipsBox.innerHTML = chips.join("");
+        svgBox.innerHTML = buildCandleSvgMarkup(data, 920, 390, "onModalCandleHover");
+      } catch (e) {
+        chipsBox.innerHTML = "";
+        svgBox.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">5m chart JSON not staged for ${sym} on this session.</div>`;
+      }
+    }
+
+    function closeChartModal() {
+      document.getElementById("chartModal").classList.remove("open");
+    }
+
+    function renderScheduleWindows(st) {
+      const sched = st.schedule_status || [];
+      const badgeFor = s => {
+        if (s === "EVALUATED" || s === "SKIPPED_FLAT") return "green";
+        if (s === "ACTIVE_NOW") return "amber";
+        if (s === "MISSED") return "red";
+        if (s === "HOLIDAY") return "blue";
+        return "neutral";
+      };
+      document.getElementById("windowsBody").innerHTML = sched.map(w => `
+        <tr>
+          <td><code>${w.window_id}</code></td>
+          <td><strong>${w.label}</strong></td>
+          <td>${w.scheduled_time} IST</td>
+          <td>${w.deadline_time} IST</td>
+          <td><span class="pill ${badgeFor(w.status)}">${w.status}</span></td>
+          <td class="muted">${w.detail || "--"}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="6" class="muted">No schedule loaded.</td></tr>`;
+    }
+
+    function renderPerformanceTab(st) {
+      const rawLedger = (st.daily_paper_report && st.daily_paper_report.ledger) || [];
+      const m = getCapMultipliers();
+      let cumAll = 0, cumE1 = 0, cumE2 = 0, cumE3 = 0, winDays = 0;
+
+      const ledger = rawLedger.map(r => {
+        const hasEngineCols = (r.orb_pnl_inr !== undefined || r.rw_pnl_inr !== undefined || r.md_pnl_inr !== undefined);
+        const d1 = Number(r.orb_pnl_inr || 0) * m.orb_short_delivery;
+        const d2 = Number(r.rw_pnl_inr || 0) * m.regime_wave_intraday;
+        const d3 = Number(r.md_pnl_inr || 0) * m.midday_dispersion_gold;
+        const dayNet = hasEngineCols ? (d1 + d2 + d3) : Number(r.net_pnl_inr || 0);
+        const openE3 = Number(r.md_open_unrealized_inr || 0) * m.midday_dispersion_gold;
+        if (dayNet > 0) winDays++;
+        cumAll += dayNet;
+        cumE1 += d1;
+        cumE2 += d2;
+        cumE3 += d3;
+        return { ...r, d1, d2, d3, dayNet, openE3, cumAll, cumE1, cumE2, cumE3 };
+      });
+
+      const latestOpenE3 = ledger.length ? ledger[ledger.length - 1].openE3 : 0;
+      document.getElementById("perfHeroGrid").innerHTML = `
+        <div class="hero-card">
+          <div class="hero-top"><span>Cumulative Realized Net</span><span class="pill blue">${ledger.length} Session(s)</span></div>
+          <div class="hero-val ${cumAll >= 0 ? 'pos' : 'neg'}">${fmtInr(cumAll)}</div>
+          <div class="hero-sub">Net after 2026 MIS, FUTSTK &amp; CNC statutory costs</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Intraday Engines (E1 + E2)</span><span class="pill purple">MIS</span></div>
+          <div class="hero-val ${(cumE1 + cumE2) >= 0 ? 'pos' : 'neg'}">${fmtInr(cumE1 + cumE2)}</div>
+          <div class="hero-sub">E1 ORB: <strong>${fmtInr(cumE1)}</strong> · E2 Wave: <strong>${fmtInr(cumE2)}</strong></div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Engine 3 (Dispersion + Gold)</span><span class="pill teal">M4_ITER10</span></div>
+          <div class="hero-val ${cumE3 >= 0 ? 'pos' : 'neg'}">${fmtInr(cumE3)}</div>
+          <div class="hero-sub">Active Carry Unrealized MTM: <strong>${fmtInr(latestOpenE3)}</strong></div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-top"><span>Positive Realized Sessions</span><span class="pill green">Track Record</span></div>
+          <div class="hero-val">${winDays} / ${ledger.length}</div>
+          <div class="hero-sub">Click any session row below to inspect its positions</div>
+        </div>
+      `;
+
+      // Cumulative curve SVG
+      const cumBox = document.getElementById("perfCumBox");
+      if (!ledger.length) {
+        cumBox.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">No ledger sessions yet</div>`;
+      } else {
+        const ptsAll = [0, ...ledger.map(r => r.cumAll)];
+        const pts1 = [0, ...ledger.map(r => r.cumE1)];
+        const pts2 = [0, ...ledger.map(r => r.cumE2)];
+        const pts3 = [0, ...ledger.map(r => r.cumE3)];
+        const allVals = [...ptsAll, ...pts1, ...pts2, ...pts3];
+        const minV = Math.min(0, ...allVals), maxV = Math.max(0, ...allVals);
+        const span = Math.max(100, maxV - minV);
+        const W = 680, H = 240, ox = 28, oy = 22, w = W - 56, h = H - 44;
+        const toX = i => ox + (i / Math.max(1, ptsAll.length - 1)) * w;
+        const toY = v => oy + h - ((v - minV) / span) * h;
+        const line = arr => arr.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
+        const zY = toY(0);
+        cumBox.innerHTML = `
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;">
+            <line x1="${ox}" y1="${zY.toFixed(1)}" x2="${ox + w}" y2="${zY.toFixed(1)}" stroke="var(--border-strong)" stroke-dasharray="4 4"/>
+            <polyline fill="none" stroke="var(--amber)" stroke-width="1.6" points="${line(pts1)}"/>
+            <polyline fill="none" stroke="var(--purple)" stroke-width="1.6" points="${line(pts2)}"/>
+            <polyline fill="none" stroke="var(--teal)" stroke-width="1.8" points="${line(pts3)}"/>
+            <polyline fill="none" stroke="var(--blue)" stroke-width="2.7" points="${line(ptsAll)}"/>
+          </svg>
+        `;
+      }
+
+      // Daily bars SVG
+      const barsBox = document.getElementById("perfBarsBox");
+      if (!ledger.length) {
+        barsBox.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">No daily bars yet</div>`;
+      } else {
+        const vals = ledger.map(r => r.dayNet);
+        const maxAbs = Math.max(100, ...vals.map(v => Math.abs(v)));
+        const W = 680, H = 240, ox = 30, oy = 22, w = W - 60, h = H - 44;
+        const midY = oy + h / 2;
+        const bw = Math.max(8, Math.min(44, (w / ledger.length) * 0.62));
+        let rects = `<line x1="${ox}" y1="${midY}" x2="${ox + w}" y2="${midY}" stroke="var(--border-strong)" stroke-dasharray="4 4"/>`;
+        ledger.forEach((r, i) => {
+          const cx = ox + ((i + 0.5) / ledger.length) * w;
+          const bh = Math.max(2, (Math.abs(r.dayNet) / maxAbs) * (h / 2 - 8));
+          const y = r.dayNet >= 0 ? midY - bh : midY;
+          const col = r.dayNet >= 0 ? "var(--green)" : "var(--red)";
+          rects += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${col}"/>`;
+          rects += `<text x="${cx.toFixed(1)}" y="${H - 6}" fill="var(--chart-axis)" font-size="10" text-anchor="middle">${r.date.slice(5)}</text>`;
+        });
+        barsBox.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;">${rects}</svg>`;
+      }
+
+      document.getElementById("ledgerBody").innerHTML = [...ledger].reverse().map(r => `
+        <tr class="clickable" onclick="jumpToSession('${r.date}')">
+          <td><strong>${r.date}</strong></td>
+          <td><span class="pill neutral">${r.regime || "--"}</span></td>
+          <td>${r.orb_trades ?? 0} tr · <span class="${r.d1 >= 0 ? 'pos' : 'neg'}">${fmtInr(r.d1)}</span></td>
+          <td>${r.rw_trades ?? 0} tr · <span class="${r.d2 >= 0 ? 'pos' : 'neg'}">${fmtInr(r.d2)}</span></td>
+          <td>${r.md_settled_trades ?? 0}/${r.md_trades ?? 0} leg · <span class="${r.d3 >= 0 ? 'pos' : 'neg'}">${fmtInr(r.d3)}</span></td>
+          <td class="${r.openE3 >= 0 ? 'pos' : 'neg'}">${fmtInr(r.openE3)}</td>
+          <td>${r.missed_windows_count || 0}</td>
+          <td class="${r.dayNet >= 0 ? 'pos' : 'neg'}" style="text-align:right;font-weight:700;">${fmtInr(r.dayNet)}</td>
+          <td class="${r.cumAll >= 0 ? 'pos' : 'neg'}" style="text-align:right;font-weight:800;">${fmtInr(r.cumAll)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="9" class="muted">No ledger entries yet.</td></tr>`;
+    }
+
+    function renderMdScanner() {
+      if (!currentState) return;
+      const g = currentState.md_gold_snapshot || {};
+      const meta = currentState.md_scan_meta || {};
+      const strip = document.getElementById("goldMacroStrip");
+      const gBadge = g.should_enter
+        ? `<span class="pill green">${g.reason}</span>`
+        : `<span class="pill neutral">${g.reason || "WAIT"}</span>`;
+
+      strip.innerHTML = `
+        <div class="macro-metrics">
+          <span><strong>Sleeve B (<code>GOLDBEES</code> 09:20 MOO):</strong> ${gBadge}</span>
+          <span class="muted">T-1 Close: <strong>${g.gc_prev ? '₹' + g.gc_prev : '--'}</strong></span>
+          <span class="muted">EMA20: <strong>${g.ema20_prev ? '₹' + g.ema20_prev : '--'}</strong></span>
+          <span class="muted">EMA50: <strong>${g.ema50_prev ? '₹' + g.ema50_prev : '--'}</strong></span>
+          <span class="muted">SMA200: <strong>${g.sma200_prev ? '₹' + g.sma200_prev : '--'}</strong></span>
+          <span class="muted">COMEX Lead: <strong>${g.gold_lead !== undefined ? (Number(g.gold_lead) * 100).toFixed(2) + '%' : '--'}</strong></span>
+          <span class="muted">| Nifty 12:30: <strong>${meta.nr_morn_pct !== undefined ? meta.nr_morn_pct + '%' : '--'}</strong> · VIX[T-1]: <strong>${meta.vix_prev ?? '--'}</strong></span>
+        </div>
+        <button class="icon-btn" onclick="openChartModal('GOLDBEES')">📈 GOLDBEES 5m Chart</button>
+      `;
+
+      const f = document.getElementById("mdFilterSelect").value;
+      const q = (document.getElementById("mdSearchInput").value || "").trim().toUpperCase();
+      let items = currentState.md_scan_snapshot || [];
+      items = items.filter(s => {
+        const z = Number(s.z_score || 0);
+        if (f === "long" && z < 0.65) return false;
+        if (f === "short" && z > -0.65) return false;
+        if (q && !String(s.symbol || "").toUpperCase().includes(q)) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById("mdScanBody");
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="muted" style="text-align:center;padding:18px;">No Engine 3 12:30 IST dispersion candidates match filter (evaluates live at 12:30:04 IST).</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(s => {
+        const z = Number(s.z_score || 0);
+        const pctW = Math.min(100, Math.round((Math.abs(z) / 2.5) * 100));
+        const col = z >= 0.65 ? "var(--green)" : (z <= -0.65 ? "var(--red)" : "var(--muted-soft)");
+        const sig = z >= 0.65
+          ? `<span class="pill green">LONG Z ≥ +0.65</span>`
+          : (z <= -0.65 ? `<span class="pill red">SHORT Z ≤ -0.65</span>` : `<span class="pill neutral">NEUTRAL</span>`);
+        return `
+          <tr class="clickable" onclick="openChartModal('${s.symbol}')">
+            <td><strong style="color:var(--text-strong);">${s.symbol}</strong></td>
+            <td>
+              <div class="z-wrap">
+                <strong class="${z >= 0.65 ? 'pos' : (z <= -0.65 ? 'neg' : 'muted')}" style="min-width:46px;">${z >= 0 ? '+' : ''}${z.toFixed(2)}</strong>
+                <div class="z-bar-track"><div class="z-bar-fill" style="width:${pctW}%;background:${col};"></div></div>
+              </div>
+            </td>
+            <td class="${Number(s.morn_ret_pct) >= 0 ? 'pos' : 'neg'}">${s.morn_ret_pct}%</td>
+            <td class="${Number(s.day_ret_pct) >= 0 ? 'pos' : 'neg'}">${s.day_ret_pct}%</td>
+            <td>${s.atr14_pct}%</td>
+            <td>₹${s.adt_cr} Cr</td>
+            <td>₹${s.p1230}</td>
+            <td>${sig}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderOrbScanner() {
+      if (!currentState) return;
+      const f = document.getElementById("orbFilterSelect").value;
+      const q = (document.getElementById("orbSearchInput").value || "").trim().toUpperCase();
+      let items = currentState.orb_scan_snapshot || [];
+      items = items.filter(s => {
+        if (f === "pass" && !s.passed) return false;
+        if (f === "wait" && s.passed) return false;
+        if (q && !String(s.symbol || "").toUpperCase().includes(q)) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById("orbScanBody");
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="muted" style="text-align:center;padding:18px;">No Engine 1 Top-30 ORB candidates match filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(s => `
+        <tr class="clickable" onclick="openChartModal('${s.symbol}')">
+          <td>#${s.dlv_rank_day}</td>
+          <td><strong style="color:var(--text-strong);">${s.symbol}</strong></td>
+          <td>₹${s.dlv_cr} Cr</td>
+          <td>₹${s.adt_cr} Cr</td>
+          <td class="${Number(s.gap_pct) <= -0.4 ? 'neg' : 'muted'}">${s.gap_pct}%</td>
+          <td>${s.orb_pos}</td>
+          <td>${s.orb_rvol}x</td>
+          <td>${s.passed ? '<span class="pill green">SHORT BREAKDOWN</span>' : '<span class="pill neutral">WAIT</span>'}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderBenchmarks(st) {
+      const wf = st.walkforward_summary || {};
+      const e1 = (wf.orb_short_delivery && wf.orb_short_delivery.splits && wf.orb_short_delivery.splits.all_2018_2026) || {};
+      const e1h = (wf.orb_short_delivery && wf.orb_short_delivery.splits && wf.orb_short_delivery.splits.holdout_2024_2026) || {};
+      const e2 = (wf.regime_wave_intraday && wf.regime_wave_intraday.splits && wf.regime_wave_intraday.splits.all_2018_2026) || {};
+      const e3o = (wf.midday_dispersion_gold && wf.midday_dispersion_gold.splits && wf.midday_dispersion_gold.splits.oos_walkforward_5fold) || {};
+      const e3a = (wf.midday_dispersion_gold && wf.midday_dispersion_gold.splits && wf.midday_dispersion_gold.splits.all_2018_2026) || {};
+
+      document.getElementById("benchmarkCardsGrid").innerHTML = `
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Engine 1 · <code>orb_short_delivery</code></h2>
+              <div class="card-sub">10:00 IST Institutional Delivery ORB Short (`3x MIS`)</div>
+            </div>
+            <span class="pill amber">GRADUATED</span>
+          </div>
+          <ul class="spec-list">
+            <li><span class="muted">2018–2026 Trades</span><strong>${e1.total_trades ?? 255} (${e1.win_rate_pct ?? 54.5}% WR)</strong></li>
+            <li><span class="muted">9Y Net Avg / Trade</span><strong class="pos">+${e1.net_avg_bps_at_14bp ?? 24.19} bps (PF ${e1.profit_factor_at_14bp ?? 1.47})</strong></li>
+            <li><span class="muted">2024–2026 Holdout</span><strong class="pos">+${e1h.net_avg_bps_at_14bp ?? 26.90} bps (PF ${e1h.profit_factor_at_14bp ?? 1.51})</strong></li>
+            <li><span class="muted">Risk &amp; Exit</span><strong>+150 bps SL / -300 bps TP / 15:15 EOD</strong></li>
+          </ul>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Engine 2 · <code>regime_wave_intraday</code></h2>
+              <div class="card-sub">6-Wave Regime Specialist (`eod_sl220`, `5x MIS`)</div>
+            </div>
+            <span class="pill purple">GRADUATED</span>
+          </div>
+          <ul class="spec-list">
+            <li><span class="muted">2018–2026 Trades</span><strong>${e2.total_trades ?? 9788} (${e2.win_rate_pct ?? 53.4}% WR)</strong></li>
+            <li><span class="muted">9Y Annualized Sharpe</span><strong class="pos">${e2.annualized_sharpe_at_8_25bp ?? 2.05} (PF ${e2.profit_factor_at_8_25bp ?? 1.26})</strong></li>
+            <li><span class="muted">Waves (IST)</span><strong>09:20, 09:30, 10:00, 10:30, 11:15, 12:00</strong></li>
+            <li><span class="muted">Risk &amp; Exit</span><strong>-220 bps 5m Stop / 15:15 EOD</strong></li>
+          </ul>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-head">
+            <div>
+              <h2>Engine 3 · <code>midday_dispersion_gold</code></h2>
+              <div class="card-sub"><code>M4_ITER10</code> 24h F&amp;O Dispersion + Macro Gold</div>
+            </div>
+            <span class="pill teal">S-TIER GRADUATED</span>
+          </div>
+          <ul class="spec-list">
+            <li><span class="muted">5-Fold Purged OOS Sharpe</span><strong class="pos">${e3o.annualized_sharpe ?? 2.28} (PF ${e3o.profit_factor ?? 1.65}, DSR 1.00)</strong></li>
+            <li><span class="muted">9Y Profitable Years</span><strong class="pos">${e3a.profitable_years ?? "9/9"} (${e3a.total_trades ?? 4132} trades)</strong></li>
+            <li><span class="muted">9Y CAGR (1x / NSE Margin)</span><strong class="pos">${e3a.unlevered_cagr_pct ?? 23.85}% / ${e3a.real_nse_margin_cagr_pct ?? 48.54}%</strong></li>
+            <li><span class="muted">OOS Max Drawdown</span><strong>${e3o.max_drawdown_pct ?? 12.12}% (1.30x FUT + 0.35x Gold)</strong></li>
+          </ul>
+        </div>
+      `;
+    }
+
+    function populateAudits(st) {
+      const sel = document.getElementById("auditSelect");
+      const opts = [{ label: `Live Session Audit (${st.session_date})`, text: st.audit_md || "No audit markdown." }];
+      (st.replay_audits || []).forEach(ra => {
+        opts.push({ label: `Cloud Verification Replay (${ra.date})`, text: ra.markdown || "" });
+      });
+      sel._auditItems = opts;
+      sel.innerHTML = opts.map((o, i) => `<option value="${i}">${o.label}</option>`).join("");
+      renderAuditBox();
+    }
+
+    function renderAuditBox() {
+      const sel = document.getElementById("auditSelect");
+      const items = sel._auditItems || [];
+      const idx = Number(sel.value || 0);
+      document.getElementById("auditPre").textContent = (items[idx] && items[idx].text) || "";
+    }
+
+    function renderState(st) {
+      currentState = st;
+      document.getElementById("verBadge").textContent = "v" + (st.strategy_version || "2.2.1");
+
+      // Status Pill
+      const pill = document.getElementById("statusPill");
+      const txt = document.getElementById("statusText");
+      const missedKeys = Object.keys(st.missed_windows || {});
+      pill.className = "status-pill";
+      if (st.market_holiday) {
+        pill.classList.add("holiday");
+        txt.textContent = `NSE Holiday (${st.session_date})`;
+      } else if (st.is_market_live) {
+        pill.classList.add("live");
+        txt.textContent = `Market Live · ${st.regime || "SCANNING"}`;
+      } else if (missedKeys.length) {
+        pill.classList.add("warn");
+        txt.textContent = `Off-Hours · ${missedKeys.length} Window Guard(s)`;
+      } else {
+        txt.textContent = `Market Closed · ${st.session_date}`;
+      }
+
+      // Date Selector
+      const sel = document.getElementById("dateSelect");
+      if (Array.isArray(st.available_dates) && st.available_dates.length) {
+        sel.innerHTML = st.available_dates.map(d =>
+          `<option value="${d}" ${d === st.session_date ? "selected" : ""}>${d}</option>`
+        ).join("");
+      }
+
+      // Banners
+      const ageMins = st.updated_at_epoch ? Math.max(0, Math.round((Date.now() / 1000 - Number(st.updated_at_epoch)) / 60)) : null;
+      const staleB = document.getElementById("staleBanner");
+      if (st.is_market_live && !st.market_holiday && ageMins !== null && ageMins > 25) {
+        staleB.style.display = "block";
+        staleB.innerHTML = `<strong>[STALE FEED WARNING]</strong> Market is open in IST, but state has not refreshed for <code>${ageMins} min</code> (last: <code>${st.updated_at}</code>).`;
+      } else staleB.style.display = "none";
+
+      const holB = document.getElementById("holidayBanner");
+      if (st.market_holiday) {
+        holB.style.display = "block";
+        holB.innerHTML = `<strong>[NSE MARKET HOLIDAY]</strong> No 5-minute bellwether candles published on <code>${st.session_date}</code>. All 3 engines stayed flat with zero false missed-window alerts.`;
+      } else holB.style.display = "none";
+
+      const misB = document.getElementById("missedBanner");
+      if (missedKeys.length) {
+        misB.style.display = "block";
+        misB.innerHTML = `<strong>[EXECUTION_WINDOW_MISSED]</strong> ${missedKeys.length} window(s) evaluated past validity deadline on <code>${st.session_date}</code> — zero retroactive entries opened: ` +
+          missedKeys.map(k => `<code>${k} (${st.missed_windows[k].scheduled_time})</code>`).join(", ");
+      } else misB.style.display = "none";
+
+      renderTimeline(st);
+      renderHeroCards(st);
+      renderCarryBanner(st);
+      renderPositionsTable();
+      drawIntradayCurve(st.intraday_curve || []);
+      renderScheduleWindows(st);
+      renderPerformanceTab(st);
+      renderMdScanner();
+      renderOrbScanner();
+      renderBenchmarks(st);
+      populateAudits(st);
+
+      const positions = st.unified_positions || [];
+      const mdScans = st.md_scan_snapshot || [];
+      const orbScans = st.orb_scan_snapshot || [];
+      if (selectedSymbol) loadInlineCandle(selectedSymbol);
+      else if (positions.length) loadInlineCandle(positions[0].symbol);
+      else if (mdScans.length) loadInlineCandle(mdScans[0].symbol);
+      else if (orbScans.length) loadInlineCandle(orbScans[0].symbol);
+      else loadInlineCandle("GOLDBEES");
+    }
+
+    async function loadSession(dateStr) {
+      chartCache = {};
+      const path = dateStr ? `data/state_${dateStr}.json` : "data/state.json";
+      const res = await fetch(`${path}?ts=${Date.now()}`);
+      if (res.ok) renderState(await res.json());
+    }
+
+    function onDateChange() {
+      selectedSymbol = null;
+      loadSession(document.getElementById("dateSelect").value);
+    }
+
+    function stepDate(delta) {
+      const sel = document.getElementById("dateSelect");
+      const nextIdx = sel.selectedIndex + delta;
+      if (nextIdx >= 0 && nextIdx < sel.options.length) {
+        sel.selectedIndex = nextIdx;
+        onDateChange();
+      }
+    }
+
+    function jumpToSession(dateStr) {
+      const todayBtn = document.querySelector('.tab-btn[data-tab="today"]');
+      switchTab("today", todayBtn);
+      selectedSymbol = null;
+      loadSession(dateStr);
+    }
+
+    function syncNow() {
+      const sel = document.getElementById("dateSelect");
+      const latest = sel.options.length ? sel.options[0].value : null;
+      loadSession(sel.value && sel.value !== latest ? sel.value : null);
+      showToast("Synced latest causal vault state");
+    }
+
+    function exportLedgerCSV() {
+      if (!currentState || !currentState.daily_paper_report) return;
+      const rows = currentState.daily_paper_report.ledger || [];
+      const headers = ["date", "regime", "orb_trades", "rw_trades", "md_trades", "md_settled_trades", "orb_pnl_inr", "rw_pnl_inr", "md_pnl_inr", "md_open_unrealized_inr", "net_pnl_inr", "cum_net_pnl_inr"];
+      const csv = [headers.join(",")].concat(rows.map(r => headers.map(h => r[h] ?? "").join(","))).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `nse_vault_3engine_ledger_${currentState.session_date}.csv`;
+      a.click();
+    }
+
+    loadSession(null);
+
+    setInterval(() => {
+      const todayOpen = document.getElementById("tab-today").classList.contains("active");
+      const sel = document.getElementById("dateSelect");
+      const latest = sel.options.length ? sel.options[0].value : null;
+      if (todayOpen && (!sel.value || sel.value === latest)) {
+        loadSession(null);
+      }
+    }, 60000);
+  </script>
+</body>
+</html>
